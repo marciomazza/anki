@@ -8,6 +8,10 @@ import zipfile
 import gc
 import time
 
+from IPython.qt.console.rich_ipython_widget import RichJupyterWidget
+from IPython.qt.inprocess import QtInProcessKernelManager
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+
 from send2trash import send2trash
 from aqt.qt import *
 from anki import Collection
@@ -74,7 +78,7 @@ class AnkiQt(QMainWindow):
         self.setupStyle()
         self.setupMenus()
         self.setupProgress()
-        self.setupErrorHandler()
+        # self.setupErrorHandler()
         self.setupSignals()
         self.setupAutoUpdate()
         self.setupHooks()
@@ -613,6 +617,9 @@ title="%s" %s>%s</button>''' % (
         # debug shortcut
         self.debugShortcut = QShortcut(QKeySequence("Ctrl+Shift+;"), self)
         self.debugShortcut.activated.connect(self.onDebug)
+
+        self.onIPythonShortcut = QShortcut(QKeySequence("Ctrl+;"), self)
+        self.onIPythonShortcut.activated.connect(self.onIPython)
 
     def keyPressEvent(self, evt):
         # do we have a delegate?
@@ -1177,3 +1184,36 @@ Please ensure a profile is open and Anki is not busy, then try again."""),
 
     def baseHTML(self):
         return '<base href="http://localhost:%d/">' % self.mediaServer.port
+
+    ##########################################################################
+
+    def onIPython(self):
+        self.ipythonWidget = ipy = QWidget()
+        ipy.show()
+        put_ipy(ipy, self)
+
+
+def put_ipy(parent, mw):
+    kernel_manager = QtInProcessKernelManager()
+    kernel_manager.start_kernel()
+    kernel = kernel_manager.kernel
+    kernel.gui = 'qt'
+
+    kernel_client = kernel_manager.client()
+    kernel_client.start_channels()
+    kernel_client.namespace = parent
+
+    def stop():
+        kernel_client.stop_channels()
+        kernel_manager.shutdown_kernel()
+
+    layout = QVBoxLayout(parent)
+    widget = RichJupyterWidget(parent=parent)
+    layout.addWidget(widget)
+    widget.kernel_manager = kernel_manager
+    widget.kernel_client = kernel_client
+    widget.exit_requested.connect(stop)
+    ipython_widget = widget
+    ipython_widget.show()
+    kernel.shell.push({'widget': widget, 'kernel': kernel, 'mw': mw})
+    return {'widget': widget, 'kernel': kernel}
