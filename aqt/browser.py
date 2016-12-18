@@ -435,7 +435,7 @@ class Browser(QMainWindow):
         self.susCut1 = QShortcut(QKeySequence("Ctrl+J"), self)
         self.susCut1.activated.connect(self.onSuspend)
         # deletion
-        self.delCut1 = QShortcut(QKeySequence("Delete"), self)
+        self.delCut1 = QShortcut(QKeySequence("Ctrl+Shift+Delete"), self)
         self.delCut1.setAutoRepeat(False)
         self.delCut1.activated.connect(self.deleteNotes)
         # add-on hook
@@ -784,7 +784,7 @@ by clicking on one on the left."""))
     def onTreeCollapse(self, item):
         if getattr(item, 'oncollapse', None):
             item.oncollapse()
-            
+
     def setFilter(self, *args):
         if len(args) == 1:
             txt = args[0]
@@ -845,7 +845,7 @@ by clicking on one on the left."""))
         for name, filt in sorted(saved.items()):
             item = self.CallbackItem(root, name, lambda s=filt: self.setFilter(s))
             item.setIcon(0, QIcon(":/icons/emblem-favorite-dark.png"))
-    
+
     def _userTagTree(self, root):
         for t in sorted(self.col.tags.all()):
             if t.lower() == "marked" or t.lower() == "leech":
@@ -1869,7 +1869,7 @@ class FavouritesLineEdit(QLineEdit):
     def setText(self, txt):
         super(FavouritesLineEdit, self).setText(txt)
         self.updateButton()
-        
+
     def updateButton(self, reset=True):
         # If search text is a saved query, switch to the delete button.
         # Otherwise show save button.
@@ -1882,13 +1882,13 @@ class FavouritesLineEdit(QLineEdit):
                 return
         self.doSave = True
         self.setIcon(QIcon(":/icons/emblem-favorite-off.png"))
-    
+
     def onClicked(self):
         if self.doSave:
             self.saveClicked()
         else:
             self.deleteClicked()
-    
+
     def saveClicked(self):
         txt = str(self.text()).strip()
         dlg = QInputDialog(self)
@@ -1902,15 +1902,15 @@ class FavouritesLineEdit(QLineEdit):
         if ok:
             self.mw.col.conf['savedFilters'][name] = txt
             self.mw.col.setMod()
-            
+
         self.updateButton()
         self.browser.buildTree()
-    
+
     def deleteClicked(self):
         msg = _('Remove "%s" from your saved searches?') % self.name
         ok = QMessageBox.question(self, _('Remove search'),
                          msg, QMessageBox.Yes, QMessageBox.No)
-    
+
         if ok == QMessageBox.Yes:
             self.mw.col.conf['savedFilters'].pop(self.name, None)
             self.mw.col.setMod()
