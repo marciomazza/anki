@@ -252,8 +252,7 @@ The front of this card is empty. Please run Tools>Empty Cards.""")
             return
         if self.state != "answer":
             return
-        if self.mw.col.sched.answerButtons(self.card) < ease:
-            return
+        ease = min(self.mw.col.sched.answerButtons(self.card), ease)
         self.mw.col.sched.answerCard(self.card, ease)
         self._answeredIds.append(self.card.id)
         self.mw.autosave()
