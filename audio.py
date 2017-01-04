@@ -19,17 +19,17 @@ def download(note):
         canceled.append(note.id)
 
 
-def more(notes=None, limit=10):
-    notes = notes or find('is:due')
-    for note in [n for n in notes
-                 if not n['German_Audio'] and n.id not in canceled][:limit]:
-        download(note)
-
 # new = [n for n in find('"deck:Duolingo German" is:new')
 #        if any(c.due < 20000 for c in n.cards())]
 new = find('"deck:Duolingo German" is:new')
 new = sorted(new, key=lambda n: min(c.due for c in n.cards()))
 
+due = find('is:due')
+
+def more(notes=new, limit=10):
+    for note in [n for n in notes
+                 if not n['German_Audio'] and n.id not in canceled][:limit]:
+        download(note)
 
 canceled = [1460960126017,
             1460960126613,
